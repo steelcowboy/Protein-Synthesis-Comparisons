@@ -115,10 +115,13 @@ void compare_rna(vector<organism> &orgs) {
 }
 
 int main(int argc, char *argv[]) {
+    if (argc == 1) {
+        cout << "Please use either the -ni argument or enter DNA strands to process." << endl;
+        return 1;
+    }
+    
     vector<organism> orgs;
     int x;
-    vector<string> dna;
-    vector<string> names;
     
     if (string(argv[1]) == "-ni") {  
         organism afri("African", "CTACGTTCATCTGGTCAGAACTGGTTA");
@@ -128,8 +131,26 @@ int main(int argc, char *argv[]) {
         orgs.push_back(afri);
         orgs.push_back(ande);
         orgs.push_back(anta);
+
+        for (x=0; x < 3; x++) {
+            orgs[x].translate();
+            cout << "\nRNA sequence " << x + 1 << ": " << orgs[x].get_rna() << "\n\n";
+            orgs[x].sequence_protein();
+            cout << string(20, '-') << endl;
+        }
+        compare_rna(orgs);
+    }
+    else if (argc == 2) {
+        string dna;
+        dna = string(argv[1]);
+        organism s("t", dna);
+        s.translate();
+        cout << "\nRNA sequence: " << s.get_rna() << "\n\n";
+        s.sequence_protein();
     }
     else {
+        vector<string> dna;
+        vector<string> names;
         for (x=1; x < argc; x++) {
             dna.push_back(string(argv[x]));
         }
@@ -144,14 +165,14 @@ int main(int argc, char *argv[]) {
             organism tmp(names[x], dna[x]);
             orgs.push_back(tmp);
         }
+        for (x=0; x < orgs.size(); x++) {
+            orgs[x].translate();
+            cout << "\nRNA sequence " << x + 1 << ": " << orgs[x].get_rna() << "\n\n";
+            orgs[x].sequence_protein();
+            cout << string(20, '-') << endl;
+        }
+        compare_rna(orgs);
     }
-    for (x=0; x < orgs.size(); x++) {
-        orgs[x].translate();
-        cout << "\nRNA sequence " << x + 1 << ": " << orgs[x].get_rna() << "\n\n";
-        orgs[x].sequence_protein();
-        cout << string(20, '-') << endl;
-    }
-    compare_rna(orgs);
     return 0;
 }
     
