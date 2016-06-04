@@ -3,6 +3,11 @@
 #include<map>
 #include<vector>
 #include<algorithm>
+#include<sstream>
+#include<fstream>
+#include<unistd.h>
+
+#define VERSION 0.2
 
 using namespace std;
 
@@ -20,6 +25,7 @@ class organism {
         string rna;
         int start;
         vector<string> rna_sep;
+        string output;
     
     public:
         organism(string n, string d) {
@@ -35,23 +41,34 @@ class organism {
             return this->rna;
         }
 
+        string get_output() {
+            return this->output;
+        }
+
         vector<string> get_rna_sep() {
             return this->rna_sep;
         }
 
-        void translate() {
+        void add_separator() {
+            output += string(20, '-') + "\n";
+        }
+        void translate(int num) {
+            stringstream oput;
             int x = this->dna.length();
             for(int i=0; i<x; i++) {
                 this->rna += rna_matrix[this->dna[i]];
             }
+            oput << "RNA sequence " << num + 1 << ": " << this->rna << "\n\n";
+            this->output += oput.str();
         }
 
         void sequence_protein() {
+            stringstream oput;
             int i;
             for (i = 0; i < this->rna.length()-3; i++) {
                 if (this->rna.substr(i, 3) == "AUG") {
                     this->start = i;
-                    cout << "Found a start sequence at " << i << endl;
+                    oput << "Found a start sequence at " << i << endl;
                     break;
                 }
             }
@@ -64,7 +81,7 @@ class organism {
                 string codon = this->rna.substr(3*i, 3);
                 if (codon == "UAA" || codon == "UAG" || codon == "UGA") {
                     rna_sep.push_back(codon);
-                    cout << "Found end sequence " << codon << "\n\n"; 
+                    oput << "Found end sequence " << codon << "\n\n"; 
                     break;
                 }
                 else { 
@@ -72,58 +89,62 @@ class organism {
                 }
             }
             for (int x = 0; x < rna_sep.size(); x++) {
-                cout << rna_sep[x] << " ";
+                oput << rna_sep[x] << " ";
             }
-            cout << "\n\n";
+            oput << "\n\n";
+            output += oput.str();
         }
 };
 
-void compare_rna(vector<organism> &orgs) {
-    int n = orgs.size();
-    vector<bool> v(n);
-    fill(v.begin(), v.end() - n + 2, true);
-
-    vector<vector<organism>> permutations;
-
-    do {
-        vector<organism> perm;
-        for (int i = 0; i < n; ++i) {
-            if (v[i]) {
-                perm.push_back(orgs[i]);
-            }
-        }
-    permutations.push_back(perm);
-    } while (prev_permutation(v.begin(), v.end()));
-
-    for (int x = 0; x < permutations.size(); x++) {
-        int pt_muts = 0;
-        cout << "Comparison between " << permutations[x][0].get_name() << " and " << permutations[x][1].get_name() << ":" << endl;
-        vector<string> rna1 = permutations[x][0].get_rna_sep();
-        vector<string> rna2 = permutations[x][1].get_rna_sep();
-        for (int i = 0; i < rna1.size(); i++) {
-            if (rna1[i] != rna2[i]) {
-                cout << "The strands differ at codon " << i + 1 << ": " << rna1[i] << " vs " << rna2[i] << endl;
-                for (int j =0; j < 3; j++) {
-                    if (rna1[i][j] != rna2[i][j]) {
-                        pt_muts++;
-                    }
-                }
-            }
-        }
-        cout << "\tNumber of point mutations: " << pt_muts << "\n\n";
-    }
-}
+string compare_rna(vector<organism> &orgs);
+string calculate_orgs(vector<organism> &orgs); 
+void output_info(string &output, bool q, bool oput, string fn);
+void showhelpinfo(char *s);
 
 int main(int argc, char *argv[]) {
     if (argc == 1) {
-        cout << "Please use either the -ni argument or enter DNA strands to process." << endl;
+        showhelpinfo(argv[0]);
         return 1;
     }
     
+    char tmp;
+    bool output_to_file = false;
+    bool test_mode = false;
+    bool quiet = false;
+    bool def = false;
+    string filename = "false";
+
+    while((tmp = getopt(argc,argv,"ho:vtqd")) != -1) {
+        switch(tmp) {
+            case 'h':
+                showhelpinfo(argv[0]);
+                return 0;
+            case 'v':
+                cout << "Program version: " << VERSION << endl;
+                return 0;
+            case 'o':
+                output_to_file = true;
+                filename = string(optarg);
+                break;
+            case 't':
+                test_mode = true;
+                break;
+            case 'q':
+                quiet = true;
+                break;
+            case 'd':
+                def = true;
+                break;
+            default:
+                showhelpinfo(argv[0]);
+                return 1;
+        }
+    }           
+    
     vector<organism> orgs;
     int x;
-    
-    if (string(argv[1]) == "-ni") {  
+
+    if (def) {  
         organism afri("African", "CTACGTTCATCTGGTCAGAACTGGTTA");
         organism ande("Andes", "TCACCTACGTCGATCTGGTCAGGACTT");
         organism anta("Antarctic", "CACCTACGTTGATCCGGTCAGGACTGGTTA");
@@ -132,51 +153,130 @@ int main(int argc, char *argv[]) {
         orgs.push_back(ande);
         orgs.push_back(anta);
 
-        for (x=0; x < 3; x++) {
-            orgs[x].translate();
-            cout << "\nRNA sequence " << x + 1 << ": " << orgs[x].get_rna() << "\n\n";
-            orgs[x].sequence_protein();
-            cout << string(20, '-') << endl;
+        if (test_mode) {
+            for (x = 0; x < 10000; x++) { 
+                string outinfo = calculate_orgs(orgs);
+                output_info(outinfo, quiet, output_to_file, filename);
+            }
+            return 0;
         }
-        compare_rna(orgs);
+        string outinfo = calculate_orgs(orgs);
+        output_info(outinfo, quiet, output_to_file, filename);
+        
     }
-    else if (argc == 2) {
-        string dna;
-        dna = string(argv[1]);
-        organism s("t", dna);
-        s.translate();
-        cout << "\nRNA sequence: " << s.get_rna() << "\n\n";
-        s.sequence_protein();
-    }
+
     else {
         vector<string> dna;
-        vector<string> names;
-        for (x=1; x < argc; x++) {
+        
+        for (x=optind; x < argc; x++) {
             dna.push_back(string(argv[x]));
         }
-        for (x=1; x < argc; x++) {
-            string name;
-            cout << "What is strand " << x << "? ";
-            getline(cin, name);
-            names.push_back(name);
+        
+        int numorgs = dna.size();
+        
+        if (numorgs == 1) {
+            organism idk("idk", dna[0]);
+            orgs.push_back(idk);
         }
-        cout << string(20, '-') << endl;
-        for (x=0; x < argc -1; x++) {
-            organism tmp(names[x], dna[x]);
-            orgs.push_back(tmp);
-        }
-        for (x=0; x < orgs.size(); x++) {
-            orgs[x].translate();
-            cout << "\nRNA sequence " << x + 1 << ": " << orgs[x].get_rna() << "\n\n";
-            orgs[x].sequence_protein();
+        else {
+            for (x=0; x < numorgs; x++) {
+                string name;
+                cout << "What is strand " << x + 1 << "? ";
+                getline(cin, name);
+                organism tmp(name, dna[x]);
+                orgs.push_back(tmp);
+            }
             cout << string(20, '-') << endl;
+
         }
-        compare_rna(orgs);
+        string outinfo = calculate_orgs(orgs);
+        output_info(outinfo, quiet, output_to_file, filename);
     }
     return 0;
 }
     
 
+string compare_rna(vector<organism> &orgs) {
+    int n = orgs.size();
+    
+    vector<bool> v(n);
+    fill(v.begin(), v.end() - n + 2, true);
+
+    vector<vector<organism>> permutations;
+
+    do { 
+        vector<organism> perm;
+        for (int i = 0; i < n; ++i) {
+            if (v[i]) {
+                perm.push_back(orgs[i]);
+             }
+        } 
+    permutations.push_back(perm);
+     } while (prev_permutation(v.begin(), v.end()));
+
+    stringstream output;
+
+    for (int x = 0; x < permutations.size(); x++) {
+        int pt_muts = 0;
+        output << "Comparison between " << 
+          permutations[x][0].get_name() << " and " <<
+          permutations[x][1].get_name() << ":" << endl;
+        vector<string> rna1 = permutations[x][0].get_rna_sep();
+        vector<string> rna2 = permutations[x][1].get_rna_sep();
+        for (int i = 0; i < rna1.size(); i++) {
+            if (rna1[i] != rna2[i]) {
+                output << "The strands differ at codon " <<
+                  i + 1 << ": " << rna1[i] << 
+                  " vs " << rna2[i] << endl;
+                for (int j =0; j < 3; j++) {
+                    if (rna1[i][j] != rna2[i][j]) {
+                        pt_muts++;
+                    }
+                }
+            }
+        }
+        output << "\tNumber of point mutations: " << pt_muts << "\n\n";
+    }
+    return output.str();
+} 
+
+string calculate_orgs(vector<organism> &orgs) {
+    stringstream output;
+    for (int x=0; x<orgs.size(); x++) {
+        orgs[x].translate(x);
+        orgs[x].sequence_protein();
+        orgs[x].add_separator();
+        output << orgs[x].get_output();
+     }
+    if (orgs.size() > 1) 
+        output << compare_rna(orgs);
+    return output.str();
+ }
+
+void output_info(string &output, bool q, bool oput, string fn) {
+    if (oput) {
+        ofstream outfile;
+        outfile.open(fn);
+        outfile << output;
+        outfile.close();
+    }
+    if (q) {
+        return;
+    }
+    cout << output;
+
+}
+
+void showhelpinfo(char *s) {
+  cout<<"Usage:   "<< s <<" [-option] [argument]"<<endl;
+  cout<<"option:  "<<"-h  show help information"<<endl;
+  cout<<"         "<<"-d  use default values, useful in testing"<<endl;
+  cout<<"         "<<"-q  quiet"<<endl;
+  cout<<"         "<<"-o  output file"<<endl;
+  cout<<"         "<<"-t  enable test mode"<<endl;
+  cout<<"         "<<"-v  show version infomation"<<endl;
+  cout<<"example: "<< s <<" -o output.txt <DNA1> <DNA2> ..."<<endl;
+}
 
 
 
