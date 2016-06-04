@@ -99,6 +99,7 @@ class organism {
 string compare_rna(vector<organism> &orgs);
 string calculate_orgs(vector<organism> &orgs); 
 void output_info(string &output, bool q, bool oput, string fn);
+void default_process(bool t, bool q, bool otf, string fn);
 void showhelpinfo(char *s);
 
 int main(int argc, char *argv[]) {
@@ -141,31 +142,13 @@ int main(int argc, char *argv[]) {
         }
     }           
     
-    vector<organism> orgs;
-    int x;
-
     if (def) {  
-        organism afri("African", "CTACGTTCATCTGGTCAGAACTGGTTA");
-        organism ande("Andes", "TCACCTACGTCGATCTGGTCAGGACTT");
-        organism anta("Antarctic", "CACCTACGTTGATCCGGTCAGGACTGGTTA");
-        
-        orgs.push_back(afri);
-        orgs.push_back(ande);
-        orgs.push_back(anta);
-
-        if (test_mode) {
-            for (x = 0; x < 10000; x++) { 
-                string outinfo = calculate_orgs(orgs);
-                output_info(outinfo, quiet, output_to_file, filename);
-            }
-            return 0;
-        }
-        string outinfo = calculate_orgs(orgs);
-        output_info(outinfo, quiet, output_to_file, filename);
-        
+        default_process(test_mode, quiet, output_to_file, filename);    
     }
 
     else {
+        vector<organism> orgs;
+        int x;
         vector<string> dna;
         
         for (x=optind; x < argc; x++) {
@@ -238,7 +221,7 @@ string compare_rna(vector<organism> &orgs) {
         output << "\tNumber of point mutations: " << pt_muts << "\n\n";
     }
     return output.str();
-} 
+ } 
 
 string calculate_orgs(vector<organism> &orgs) {
     stringstream output;
@@ -265,6 +248,31 @@ void output_info(string &output, bool q, bool oput, string fn) {
     }
     cout << output;
 
+}
+
+void default_process(bool t, bool q, bool otf, string fn) {
+    int times;
+    int x=0;
+    
+    if (t) 
+        times = 10000;
+    else
+        times = 1;
+    
+    do {
+        vector<organism> orgs;
+        organism afri("African", "CTACGTTCATCTGGTCAGAACTGGTTA");
+        organism ande("Andes", "TCACCTACGTCGATCTGGTCAGGACTT");
+        organism anta("Antarctic", "CACCTACGTTGATCCGGTCAGGACTGGTTA");
+        
+        orgs.push_back(afri);
+        orgs.push_back(ande);
+        orgs.push_back(anta);
+
+        string outinfo = calculate_orgs(orgs);
+        output_info(outinfo, q, otf, fn);
+        x++;
+    } while (x < times);
 }
 
 void showhelpinfo(char *s) {
