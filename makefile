@@ -1,10 +1,11 @@
 CC=g++
+
 TARGET=protein_synthesis
 SRCDIR=src
 CMPDIR=comparison
 
 all: bin 
-	$(CC) $(SRCDIR)/$(TARGET).cc -o bin/$(TARGET)
+	$(CC) -fsigned-char $(SRCDIR)/$(TARGET).cc -o bin/$(TARGET)
 	cp $(SRCDIR)/$(TARGET).py bin/
 
 comparison: bin
