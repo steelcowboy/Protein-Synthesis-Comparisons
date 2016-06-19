@@ -7,7 +7,7 @@
 #include<sstream>
 #include<fstream>
 
-#define VERSION 0.2
+#define VERSION 0.3
 
 using namespace std;
 
