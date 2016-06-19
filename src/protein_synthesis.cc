@@ -1,3 +1,4 @@
+#include<unistd.h>
 #include<iostream>
 #include<string>
 #include<map>
@@ -5,7 +6,6 @@
 #include<algorithm>
 #include<sstream>
 #include<fstream>
-#include<unistd.h>
 
 #define VERSION 0.2
 
@@ -23,15 +23,11 @@ class organism {
         string name;
         string dna;
         string rna;
-        int start;
         vector<string> rna_sep;
         string output;
-    
+   
     public:
-        organism(string n, string d) {
-            name = n;
-            dna = d;
-        }
+        organism(string n, string d) : name(n), dna(d) {}
 
         string get_name() {
             return this->name;
@@ -52,27 +48,37 @@ class organism {
         void add_separator() {
             output += string(20, '-') + "\n";
         }
-        void translate(int num) {
+         void translate(int num, bool r) {
             stringstream oput;
             int x = this->dna.length();
-            for(int i=0; i<x; i++) {
-                this->rna += rna_matrix[this->dna[i]];
+            if (!r) {
+                for (int i=0; i<x; i++) {
+                    this->rna += rna_matrix[this->dna[i]];
+                }
+            } else {
+                this->rna = this->dna;
             }
             oput << "RNA sequence " << num + 1 << ": " << this->rna << "\n\n";
             this->output += oput.str();
         }
 
-        void sequence_protein() {
+        int sequence_protein() {
             stringstream oput;
+            int start = 0;
             int i;
             for (i = 0; i < this->rna.length()-3; i++) {
                 if (this->rna.substr(i, 3) == "AUG") {
-                    this->start = i;
+                    start = i;
                     oput << "Found a start sequence at " << i << endl;
                     break;
-                }
-            }
-            this->rna = this->rna.substr(this->start);
+                 }
+ 
+             }
+             if (start == 0) {
+                this->output += "No start sequence found\n";
+                return 0;
+             }
+            this->rna = this->rna.substr(start);
             int len = this->rna.length();
             int codon_count = len/3;
             this->rna = this->rna.substr(0, codon_count*3);
@@ -81,7 +87,7 @@ class organism {
                 string codon = this->rna.substr(3*i, 3);
                 if (codon == "UAA" || codon == "UAG" || codon == "UGA") {
                     rna_sep.push_back(codon);
-                    oput << "Found end sequence " << codon << "\n\n"; 
+                    oput << "Found end sequence " << codon << "\n\n";
                     break;
                 }
                 else { 
@@ -92,14 +98,15 @@ class organism {
                 oput << rna_sep[x] << " ";
             }
             oput << "\n\n";
-            output += oput.str();
+            this->output += oput.str();
+            return 1;
         }
 };
 
 string compare_rna(vector<organism> &orgs);
-string calculate_orgs(vector<organism> &orgs); 
+string calculate_orgs(vector<organism> &orgs, bool r);
 void output_info(string &output, bool q, bool oput, string fn);
-void default_process(bool t, bool q, bool otf, string fn);
+void default_process(bool t, bool q, bool r, bool otf, string fn);
 void showhelpinfo(char *s);
 
 int main(int argc, char *argv[]) {
@@ -113,9 +120,10 @@ int main(int argc, char *argv[]) {
     bool test_mode = false;
     bool quiet = false;
     bool def = false;
+    bool given_rna = false;
     string filename = "false";
 
-    while((tmp = getopt(argc,argv,"ho:vtqd")) != -1) {
+    while((tmp = getopt(argc,argv,"ho:vtqdr")) != -1) {
         switch(tmp) {
             case 'h':
                 showhelpinfo(argv[0]);
@@ -136,6 +144,9 @@ int main(int argc, char *argv[]) {
             case 'd':
                 def = true;
                 break;
+            case 'r':
+                given_rna = true;
+                break;
             default:
                 showhelpinfo(argv[0]);
                 return 1;
@@ -143,7 +154,7 @@ int main(int argc, char *argv[]) {
     }           
     
     if (def) {  
-        default_process(test_mode, quiet, output_to_file, filename);    
+        default_process(test_mode, quiet, given_rna, output_to_file, filename);    
     }
 
     else {
@@ -172,12 +183,11 @@ int main(int argc, char *argv[]) {
             cout << string(20, '-') << endl;
 
         }
-        string outinfo = calculate_orgs(orgs);
+        string outinfo = calculate_orgs(orgs, given_rna);
         output_info(outinfo, quiet, output_to_file, filename);
     }
     return 0;
 }
-    
 
 string compare_rna(vector<organism> &orgs) {
     int n = orgs.size();
@@ -223,16 +233,20 @@ string compare_rna(vector<organism> &orgs) {
     return output.str();
  } 
 
-string calculate_orgs(vector<organism> &orgs) {
+string calculate_orgs(vector<organism> &orgs, bool r) {
+    vector<organism> new_orgs;
     stringstream output;
     for (int x=0; x<orgs.size(); x++) {
-        orgs[x].translate(x);
-        orgs[x].sequence_protein();
+        orgs[x].translate(x, r);
+        int sequenced = orgs[x].sequence_protein();
         orgs[x].add_separator();
         output << orgs[x].get_output();
+        if (sequenced) {
+            new_orgs.push_back(orgs[x]);
+        }
      }
-    if (orgs.size() > 1) 
-        output << compare_rna(orgs);
+    if (new_orgs.size() > 1) 
+        output << compare_rna(new_orgs);
     return output.str();
  }
 
@@ -250,7 +264,7 @@ void output_info(string &output, bool q, bool oput, string fn) {
 
 }
 
-void default_process(bool t, bool q, bool otf, string fn) {
+void default_process(bool t, bool q, bool r, bool otf, string fn) {
     int times;
     int x=0;
     
@@ -269,7 +283,7 @@ void default_process(bool t, bool q, bool otf, string fn) {
         orgs.push_back(ande);
         orgs.push_back(anta);
 
-        string outinfo = calculate_orgs(orgs);
+        string outinfo = calculate_orgs(orgs, r);
         output_info(outinfo, q, otf, fn);
         x++;
     } while (x < times);
@@ -281,11 +295,10 @@ void showhelpinfo(char *s) {
   cout<<"         "<<"-d  use default values, useful in testing"<<endl;
   cout<<"         "<<"-q  quiet"<<endl;
   cout<<"         "<<"-o  output file"<<endl;
+  cout<<"         "<<"-r  input is rna"<<endl;
   cout<<"         "<<"-t  enable test mode"<<endl;
   cout<<"         "<<"-v  show version infomation"<<endl;
   cout<<"example: "<< s <<" -o output.txt <DNA1> <DNA2> ..."<<endl;
 }
-
-
 
 
