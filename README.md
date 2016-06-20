@@ -23,7 +23,7 @@ To test the programs against each other
 binary without any cout statements
 
 ## To Do
-- --Move everything to a separate library--
+- ~~Move everything to a separate library~~
 - Integrate Python into the build system
 - See how my Python and C can go together (Cython?)
 - Clean up some implementation
