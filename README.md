@@ -1,19 +1,34 @@
-# Protein Synthesis Comparisons v0.2
-Programs to convert DNA to RNA and find protein sequences. 
+# Protein Synthesis Comparisons v0.4
+Programs to convert DNA to RNA and find protein sequences,
+implemented in C++ and Python to compare speeds. 
 
-I implemented in C++ and Python to compare speeds. Not intended
-for use currently but it will eventually be cleaned up.
+The C++ version is completely usable with many different
+flags. The Python version will eventually be updated to 
+match the functionality of the C++ version.
 
 ## To Use
-For general purposes simply run `make`. To test the programs
-against each other run `make comparison`.
+For general purposes use cmake. To keep everything clean:
+
+```bash
+mkdir _build
+cd _build
+cmake ../
+make
+```
+
+To test the programs against each other 
+`cd src/comparison` run `make`.
 
 *Note:* Make comparison will create the protein_synthesis 
 binary without any cout statements
 
-I also made a fancier version with better functions and output
-support; the test option is broken in version 0.2 but will be 
-fixed in 0.3
+## To Do
+- --Move everything to a separate library--
+- Integrate Python into the build system
+- See how my Python and C can go together (Cython?)
+- Clean up some implementation
+- Bring Python version up-to-date
+- Make documentation
 
 
 
