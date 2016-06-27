@@ -49,11 +49,11 @@ int main(int argc, char *argv[]) {
     }           
     
     if (def) {  
-        default_process(test_mode, quiet, given_rna, output_to_file, filename);    
+        default_process(test_mode, quiet, output_to_file, filename);    
     }
 
     else {
-        std::vector<organism> orgs;
+        std::vector<Organism> orgs;
         int x;
         std::vector<std::string> dna;
         
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
         int numorgs = dna.size();
         
         if (numorgs == 1) {
-            organism idk("idk", dna[0]);
+            Organism idk("idk", 0, dna[0]);
             orgs.push_back(idk);
         }
         else {
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
                 std::string name;
                 std::cout << "What is strand " << x + 1 << "? ";
                 getline(std::cin, name);
-                organism tmp(name, dna[x]);
+                Organism tmp(name, x, dna[x]);
                 orgs.push_back(tmp);
             }
             std::cout << std::string(20, '-') << std::endl;

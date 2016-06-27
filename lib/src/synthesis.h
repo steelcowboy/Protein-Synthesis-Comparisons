@@ -3,31 +3,37 @@
 
 #include<string>
 #include<vector>
+#include<map>
 
 #define VERSION 0.4
 
-class organism {
+class Organism {
     private:
         std::string name;
+        int organism_number;
         std::string dna;
+        static std::map<char, char> rna_matrix;
         std::string rna;
+        std::size_t start_position = 0;
+        bool is_sequenced_ = 0;
+        std::string end_codon;
         std::vector<std::string> rna_sep;
-        std::string output;
    
     public:
-        organism(std::string n, std::string d) : name(n), dna(d) {}
+        Organism(std::string na, int nu, std::string d) : name(na), organism_number(nu), dna(d) {}
         std::string get_name();
         std::string get_rna();
         std::string get_output();
         std::vector<std::string> get_rna_sep(); 
-        void add_separator(); 
-        void translate(int num, bool r);
-        int sequence_protein(); 
+        void given_rna();
+        void translate();
+        void sequence_protein(); 
+        bool is_sequenced();
 };
-std::string compare_rna(std::vector<organism> &orgs);
-std::string calculate_orgs(std::vector<organism> &orgs, bool r);
+std::string compare_rna(std::vector<Organism> &orgs);
+std::string calculate_orgs(std::vector<Organism> &orgs, bool r);
 void output_info(std::string &output, bool q, bool oput, std::string fn);
-void default_process(bool t, bool q, bool r, bool otf, std::string fn);
+void default_process(bool t, bool q, bool otf, std::string fn);
 void showhelpinfo(char *s);
 
 #endif
