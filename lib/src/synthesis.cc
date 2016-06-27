@@ -7,104 +7,95 @@
 #include<sstream>
 #include<fstream>
 
-        std::map<char, char> rna_matrix = {
-            {'A', 'U'},
-            {'T', 'A'},
-            {'G', 'C'},
-            {'C', 'G'}
-        };
+std::map<char, char> Organism::rna_matrix = {
+    {'A', 'U'},
+    {'T', 'A'},
+    {'G', 'C'},
+    {'C', 'G'}
+};
 
-std::string organism::get_name() {
+std::string Organism::get_name() {
     return this->name;
 }
 
-std::string organism::get_rna() {
+std::string Organism::get_rna() {
     return this->rna;
 }
 
-std::string organism::get_output() {
-    return this->output;
+std::string Organism::get_output() {
+    std::stringstream oput;
+    oput << "RNA sequence " << this->organism_number + 1 << ": " << this->rna << "\n\n";
+    if (!this->is_sequenced_) {
+        oput << "No start sequence found\n";
+        oput << std::string(20, '-') + "\n";
+        return oput.str();
+    }
+    oput << "Found a start sequence at " << this->start_position << std::endl;
+    oput << "Found end sequence " << this->end_codon << "\n\n";
+    for (int x = 0; x < this->rna_sep.size(); x++) 
+        oput << rna_sep[x] << " ";
+    oput << "\n\n";
+    oput << std::string(20, '-') + "\n";
+    return oput.str();
 }
 
-std::vector<std::string> organism::get_rna_sep() {
+std::vector<std::string> Organism::get_rna_sep() {
     return this->rna_sep;
 }
 
-void organism::add_separator() {
-    output += std::string(20, '-') + "\n";
+void Organism::given_rna() {
+    this->rna = this->dna;
 }
 
-void organism::translate(int num, bool r) {
-    std::stringstream oput;
-    if (!r) {
-        int x = this->dna.length();
-        for (int i=0;  i<x; i++) {
-            this->rna += rna_matrix[this->dna[i]];
-        }
-    } else {
-        this->rna = this->dna;
-    }
-    oput << "RNA sequence " << num + 1 << ": " << this->rna << "\n\n";
-    this->output += oput.str();
+void Organism::translate() {
+    for (int i=0;  i<this->dna.length(); i++) 
+        this->rna += this->rna_matrix[this->dna[i]];
 }
 
-int organism::sequence_protein() {
-    std::stringstream oput;
-    int start = 0;
-    int i;
-    for (i = 0; i < this->rna.length()-3; i++) {
-        if (this->rna.substr(i, 3) == "AUG") {
-            start = i;
-            oput << "Found a start sequence at " << i << std::endl;
-            break;
-         }
-
+void Organism::sequence_protein() {
+    char start_sequence[] = "AUG";
+    this->start_position = this->rna.find(start_sequence);
+    if (this->start_position == std::string::npos) {
+        this->is_sequenced_ = 0;
      }
-     if (start == 0) {
-        this->output += "No start sequence found\n";
-        return 0;
-     }
-    this->rna = this->rna.substr(start);
-    int len = this->rna.length();
+    std::string rna_tmp = this->rna.substr(this->start_position);
+    int len = rna_tmp.length();
     int codon_count = len/3;
-    this->rna = this->rna.substr(0, codon_count*3);
+    rna_tmp = rna_tmp.substr(0, codon_count*3);
     rna_sep.push_back("AUG");
-    for (i = 1; i < codon_count; i++) {
-        std::string codon = this->rna.substr(3*i, 3);
-        if (codon == "UAA" || codon == "UAG" || codon == "UGA") {
+    for (int i = 1; i  < codon_count; i++) {
+        std::string codon = rna_tmp.substr(3*i, 3);
+        if (codon == "UAA" || codon  == "UAG" || codon == "UGA") {
             rna_sep.push_back(codon);
-            oput << "Found end sequence " << codon << "\n\n";
+            this->end_codon = codon;
             break;
         }
         else { 
             rna_sep.push_back(codon);
-        }
+         }
     }
-    for (int x = 0; x < rna_sep.size(); x++) {
-        oput << rna_sep[x] << " ";
-    }
-    oput << "\n\n";
-    this->output += oput.str();
-    return 1;
-}
+    this->is_sequenced_ = 1;
+} 
 
-std::string compare_rna(std::vector<organism> &orgs) {
+bool Organism::is_sequenced() { return this->is_sequenced_; }
+
+std::string compare_rna(std::vector<Organism> &orgs) {
     int n = orgs.size();
     
     std::vector<bool> v(n);
     fill(v.begin(), v.end() - n + 2, true);
 
-    std::vector<std::vector<organism>> permutations;
+    std::vector<std::vector<Organism>> permutations;
 
     do { 
-        std::vector<organism> perm;
+        std::vector<Organism> perm;
         for (int i = 0; i < n; ++i) {
             if (v[i]) {
                 perm.push_back(orgs[i]);
              }
         } 
-    permutations.push_back(perm);
-     } while (prev_permutation(v.begin(), v.end()));
+        permutations.push_back(perm);
+    } while (prev_permutation(v.begin(), v.end()));
 
     std::stringstream output;
 
@@ -132,21 +123,23 @@ std::string compare_rna(std::vector<organism> &orgs) {
     return output.str();
  } 
 
-std::string calculate_orgs(std::vector<organism> &orgs, bool r) {
-    std::vector<organism> new_orgs;
-    std::stringstream output;
+std::string calculate_orgs(std::vector<Organism> &orgs, bool rna_given=false) {
+    std::vector<Organism> new_orgs;
+    std::string output;
     for (int x=0; x<orgs.size(); x++) {
-        orgs[x].translate(x, r);
-        int sequenced = orgs[x].sequence_protein();
-        orgs[x].add_separator();
-        output << orgs[x].get_output();
-        if (sequenced) {
+        if (rna_given) 
+            orgs[x].given_rna();
+        else 
+            orgs[x].translate();
+        orgs[x].sequence_protein();
+        output += orgs[x].get_output();
+        if (orgs[x].is_sequenced()) {
             new_orgs.push_back(orgs[x]);
-        }
-     }
+         }
+      }
     if (new_orgs.size() > 1) 
-        output << compare_rna(new_orgs);
-    return output.str();
+        output += compare_rna(new_orgs);
+    return output;
  }
 
 void output_info(std::string &output, bool q, bool oput, std::string fn) {
@@ -163,7 +156,7 @@ void output_info(std::string &output, bool q, bool oput, std::string fn) {
 
 }
 
-void default_process(bool t, bool q, bool r, bool otf, std::string fn) {
+void default_process(bool t, bool q, bool otf, std::string fn) {
     int times;
     int x=0;
     
@@ -173,16 +166,16 @@ void default_process(bool t, bool q, bool r, bool otf, std::string fn) {
         times = 1;
     
     do {
-        std::vector<organism> orgs;
-        organism afri("African", "CTACGTTCATCTGGTCAGAACTGGTTA");
-        organism ande("Andes", "TCACCTACGTCGATCTGGTCAGGACTT");
-        organism anta("Antarctic", "CACCTACGTTGATCCGGTCAGGACTGGTTA");
+        std::vector<Organism> orgs;
+        Organism afri("African", 0, "CTACGTTCATCTGGTCAGAACTGGTTA");
+        Organism ande("Andes", 1, "TCACCTACGTCGATCTGGTCAGGACTT");
+        Organism anta("Antarctic", 2, "CACCTACGTTGATCCGGTCAGGACTGGTTA");
         
         orgs.push_back(afri);
         orgs.push_back(ande);
         orgs.push_back(anta);
 
-        std::string outinfo = calculate_orgs(orgs, r);
+        std::string outinfo = calculate_orgs(orgs);
         output_info(outinfo, q, otf, fn);
         x++;
      } while (x < times);

@@ -28,6 +28,7 @@ binary without any cout statements
 - Integrate Python into the build system
 - See how my Python and C can go together (Cython?)
 - Clean up some implementation
+  * Separate output into sections and allow querying certain information
 - Bring Python version up-to-date
 - Make documentation
 
