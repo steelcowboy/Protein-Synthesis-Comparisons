@@ -1,8 +1,11 @@
 from sys import argv, exit
 from itertools import combinations
 
+<<<<<<< HEAD
 VERSION = 0.6
 
+=======
+>>>>>>> origin/master
 class Organism():
     rna_matrix = { "A": "U",
                    "T": "A",
