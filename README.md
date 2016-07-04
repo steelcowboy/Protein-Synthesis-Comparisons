@@ -1,10 +1,9 @@
-# Protein Synthesis Comparisons v0.4
+# Protein Synthesis Comparisons v0.5
 Programs to convert DNA to RNA and find protein sequences,
 implemented in C++ and Python to compare speeds. 
 
 The C++ version is completely usable with many different
-flags. The Python version will eventually be updated to 
-match the functionality of the C++ version.
+flags. 
 
 ## To Use
 For general purposes use cmake. To keep everything clean:
@@ -29,7 +28,7 @@ binary without any cout statements
 - See how my Python and C can go together (Cython?)
 - Clean up some implementation
   * Separate output into sections and allow querying certain information
-- Bring Python version up-to-date
+- ~~Bring Python version up-to-date~~
 - Make documentation
 
 

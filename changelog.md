@@ -1,3 +1,7 @@
+# 0.5
+- Made a few other optimizations, mostly regarding adding some const methods
+- Fixed bug where one sequence without a start sequence crashes the program
+
 # 0.4
 - Moved functions into a library
 - Optimized a few things

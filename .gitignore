@@ -1,2 +1,5 @@
 src/comparison/bin
 _build/
+src/python/__pycache__
+src/python/setup.py
+
