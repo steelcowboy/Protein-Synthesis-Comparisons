@@ -10,10 +10,10 @@ commented out. The asterisk means it prints to cout.
 
 Results
 --------------
-Python: 1.8582
-C++*:   0.6516
-C++:    0.5088
-C++_m:  0.2554
+- Python: 1.8582
+- C++*:   0.6516
+- C++:    0.5088
+- C++_m:  0.2554
 
 
 
@@ -21,10 +21,10 @@ On a Raspberry Pi 2 the results are more distinctive:
 
 Results: 
 -------------
-Python: 23.3114
-C++*:   5.0008
-C++:    3.5061
-C++_m:  1.0146
+- Python: 23.3114
+- C++*:   5.0008
+- C++:    3.5061
+- C++_m:  1.0146
 
 
 As of Version 0.5 the Python version functions exactly as
@@ -40,9 +40,9 @@ as the primary language for the library
 
 Results: 
 -------------
-Python with normal module: 1.3534
-Python with cython module: 0.8616
-~~Python with cythonized module:~~
-~~C++ compiled with cythonized module:~~
+- Python with normal module: 1.3534
+- Python with cython module: 0.8616
+- ~~Python with cythonized module:~~
+- ~~C++ compiled with cythonized module:~~
 
 

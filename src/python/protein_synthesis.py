@@ -5,12 +5,8 @@ from sys import exit
 
 def main():
     parser = argparse.ArgumentParser(description='Translate DNA and compare against other RNA strands')
-<<<<<<< HEAD
     parser.add_argument('-v', action='version', version=str(VERSION), 
-=======
-    parser.add_argument('-v', action='version', version='0.5', 
->>>>>>> origin/master
-                        help='print the version')
+                       help='print the version')
     parser.add_argument('-o', dest='filename',
                         help='speficy a filename to output to')
     parser.add_argument('-t', action='store_true', dest='test_mode',

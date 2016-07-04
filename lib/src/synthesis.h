@@ -5,11 +5,7 @@
 #include<vector>
 #include<map>
 
-<<<<<<< HEAD
 #define VERSION 0.6
-=======
-#define VERSION 0.5
->>>>>>> origin/master
 
 class Organism {
     private:

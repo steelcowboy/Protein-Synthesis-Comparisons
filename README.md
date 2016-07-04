@@ -1,4 +1,4 @@
-# Protein Synthesis Comparisons v0.5
+# Protein Synthesis Comparisons v0.6
 Programs to convert DNA to RNA and find protein sequences,
 implemented in C++ and Python to compare speeds. 
 
