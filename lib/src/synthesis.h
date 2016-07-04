@@ -5,7 +5,7 @@
 #include<vector>
 #include<map>
 
-#define VERSION 0.5
+#define VERSION 0.6
 
 class Organism {
     private:
